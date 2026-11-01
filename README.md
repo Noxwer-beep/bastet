@@ -17,6 +17,7 @@ the thinking part gets the time.
 | Command | What it answers |
 |---|---|
 | `bastet ioc <value...>` | what kind of indicator is this, how bad does it look, where do I paste it |
+| `bastet extract <file>` | pull every indicator out of a mail, alert or ticket — deduplicated and defanged |
 | `bastet logs <file>` | who is brute-forcing, did anyone get in, who is scanning |
 | `bastet cve <id>` | what is this CVE, how severe, what do I read next (cached offline) |
 | `bastet attack <id\|word>` | what is the technique and what actually detects it |
@@ -46,6 +47,18 @@ It parses sshd and access logs, then reports six things and nothing else:
 - **a burst of 404s** (directory bruteforce)
 - **tool-like user agents** (sqlmap, nuclei, curl)
 
+It streams: 500,000 lines (41 MB) takes about two seconds and 36 MB of memory, and it
+reads `.gz` directly — `auth.log.1.gz` is not optional when you need yesterday.
+
+Filters, because a shift is never about the whole file:
+
+```bash
+bastet logs auth.log --ip 45.155.205.233        # one source
+bastet logs auth.log --since 02:00 --until 04:00 # the window it happened in
+bastet logs auth.log --max-lines 100000          # stop early on a huge file
+zcat auth.log.1.gz | bastet logs -               # or pipe it in
+```
+
 `--json` for the rest, `--fail-on high` to make it exit 4 so cron or CI can act on it.
 
 ## Indicators
@@ -63,6 +76,21 @@ you the lookup links, pre-filled and defanged.
 
 Everything is offline and deterministic. Reputation services are linked, not called:
 no API key, no rate limit, no telemetry, and the same answer on a plane.
+
+## A pile of text
+
+The most common task with no good tool: someone forwards an alert, a phishing mail, or
+two paragraphs from a ticket, and you need the addresses, domains, hashes and CVEs out
+of it.
+
+```bash
+$ bastet extract alert.txt
+$ pbpaste | bastet extract -
+```
+
+Types, deduplicates, and defangs in one pass, and it is deliberately careful about the
+two things that make naive extraction useless: `2026:10:00:11` is a timestamp, not an
+IPv6 address, and `report.png` is a filename, not a domain ending in `.png`.
 
 ## CVE and ATT&CK
 
@@ -122,15 +150,30 @@ pip install rich         # the only dependency
 python3 -m unittest discover -s tests -t .
 ```
 
-131 tests, stdlib only, no network. They cover indicator classification and defanging,
-decode chains, log parsing and every detection, the NVD response parser, cases,
-subnet maths, both data files, and a smoke test per subcommand.
+154 tests, stdlib only, no network. They cover indicator classification and defanging,
+extraction (including the timestamp and filename traps), decode chains, log parsing and
+every detection, gzip and binary handling, the time filters, the NVD response parser,
+cases, subnet maths, both data files, and a smoke test per subcommand.
+
+## Speed
+
+Measured on the 41 MB / 500k-line file used during development:
+
+| Version | Wall time | Peak memory |
+|---|---|---|
+| first attempt (list of events, `strptime` per line) | 4.8 s | 219 MB |
+| current (streaming, sliced timestamps) | 2.0 s | 36 MB |
+
+Two changes did most of it: aggregating counters during the pass instead of keeping
+every event, and slicing the fixed-width timestamps instead of calling `strptime` a
+million times.
 
 ## Where things live
 
 ```
 src/bastet/        the package
 src/bastet/data/   attack.json (36 techniques), ports.json (46 ports)
+docs/              USAGE.md — every command, the thresholds, and three workflows
 examples/          a brute-force auth.log and a scanner access.log
 tests/             one module per area
 docs/img/          the screenshots above, rendered from real output

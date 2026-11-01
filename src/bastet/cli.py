@@ -33,6 +33,7 @@ from . import cases
 from . import cat as catmod
 from . import codec
 from . import cve as cvemod
+from . import extract as extractmod
 from . import ioc as iocmod
 from . import logs as logsmod
 from . import netcalc
@@ -151,6 +152,54 @@ def cmd_ioc(args: argparse.Namespace) -> int:
     return 0
 
 
+# ---------------------------------------------------------------- extract
+
+def cmd_extract(args: argparse.Namespace) -> int:
+    only = tuple(k.strip().lower() for k in args.only.split(",")) if args.only else extractmod.KINDS
+    unknown = [k for k in only if k not in extractmod.KINDS]
+    if unknown:
+        ui.fail(f"unknown kind {unknown[0]!r} — choose from {', '.join(extractmod.KINDS)}")
+        return 2
+
+    try:
+        if args.file == "-" or args.file is None:
+            text = sys.stdin.read()
+            indicators = extractmod.extract(text, only=only)
+        else:
+            indicators = extractmod.from_file(args.file, only=only)
+    except FileNotFoundError:
+        ui.fail(f"no such file: {args.file}")
+        return 2
+
+    if not indicators:
+        ui.warn("nothing that looks like an indicator in there")
+        return 0
+
+    if args.json:
+        ui.emit_json([i.to_dict() for i in indicators])
+        return 0
+
+    counts = extractmod.by_kind(indicators)
+    summary = " · ".join(f"{count} {kind}" for kind, count in counts.items())
+    ui.header("extracted", summary)
+    grid([("TYPE", 10), ("RISK", 10), ("INDICATOR", 40), ("FIRST READ", None)],
+         [[i.kind.upper(), ui.severity(i.risk), i.value, _short(i.notes[0] if i.notes else "—", 44)]
+          for i in indicators[: args.top]])
+    if len(indicators) > args.top:
+        ui.console.print(f"  [dim]… {len(indicators) - args.top} more (--top to see them)[/]"
+                         if ui.RICH else f"  … {len(indicators) - args.top} more")
+        ui.console.print()
+
+    worst = iocmod.worst_risk(indicators)
+    ui.console.print(f"  defanged list:" if not ui.RICH else "  [dim]defanged list[/]")
+    for indicator in indicators[: args.top]:
+        ui.console.print(f"    {iocmod.defang(indicator.value)}")
+    ui.console.print()
+    if SEVERITY_ORDER.get(worst, 0) <= SEVERITY_ORDER["medium"]:
+        ui.warn(f"worst reading: {worst.upper()}")
+    return 0
+
+
 # ---------------------------------------------------------------- codec
 
 def cmd_decode(args: argparse.Namespace) -> int:
@@ -245,12 +294,27 @@ def cmd_hash(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------- logs
 
 def cmd_logs(args: argparse.Namespace) -> int:
-    path = Path(args.file).expanduser()
-    if not path.exists():
-        ui.fail(f"no such file: {path}")
+    since = until = None
+    try:
+        if args.since:
+            since = logsmod.parse_clock(args.since, dt.time.min)
+        if args.until:
+            until = logsmod.parse_clock(args.until, dt.time.max)
+    except ValueError as exc:
+        ui.fail(str(exc))
         return 2
 
-    analysis = logsmod.analyse(path)
+    try:
+        analysis = logsmod.analyse(
+            args.file,
+            max_lines=args.max_lines,
+            ip_filter=args.ip or "",
+            since=since,
+            until=until,
+        )
+    except logsmod.LogError as exc:
+        ui.fail(str(exc))
+        return 2
 
     if args.json:
         ui.emit_json(analysis.to_dict())
@@ -258,10 +322,11 @@ def cmd_logs(args: argparse.Namespace) -> int:
         span = ""
         if analysis.first_ts and analysis.last_ts:
             span = f" · {analysis.first_ts:%Y-%m-%d %H:%M} → {analysis.last_ts:%H:%M}"
-        ui.header("log triage", f"{path.name} · {analysis.fmt}{span}")
+        label = Path(args.file).name if args.file != "-" else "stdin"
+        ui.header("log triage", f"{label} · {analysis.fmt}{span}")
         ui.console.print(
-            f"  {analysis.lines} line(s), {analysis.parsed} parsed, "
-            f"{len(analysis.findings)} finding(s)\n"
+            f"  {analysis.lines:,} line(s), {analysis.parsed:,} parsed, "
+            f"{len(analysis.findings)} finding(s) — {analysis.elapsed_ms:.0f} ms\n"
         )
 
         if analysis.findings:
@@ -699,8 +764,19 @@ def build_parser() -> argparse.ArgumentParser:
     h.add_argument("--json", action="store_true")
     h.set_defaults(func=cmd_hash)
 
+    ex = sub.add_parser("extract", help="pull indicators out of any text or file")
+    ex.add_argument("file", nargs="?", default="-", help="file to read, or - for stdin")
+    ex.add_argument("--only", help=f"comma separated kinds: {','.join(extractmod.KINDS)}")
+    ex.add_argument("--top", type=int, default=40)
+    ex.add_argument("--json", action="store_true")
+    ex.set_defaults(func=cmd_extract)
+
     lg = sub.add_parser("logs", help="triage an auth or web access log")
-    lg.add_argument("file")
+    lg.add_argument("file", help="log file (.gz ok), or - for stdin")
+    lg.add_argument("--ip", help="only events mentioning this address")
+    lg.add_argument("--since", help="start time within the day, e.g. 02:00")
+    lg.add_argument("--until", help="end time within the day, e.g. 06:00")
+    lg.add_argument("--max-lines", type=int, help="stop after N lines")
     lg.add_argument("--top", type=int, default=12, help="findings to show (default 12)")
     lg.add_argument("--fail-on", choices=SEVERITIES,
                     help="exit 4 if a finding at this severity exists")

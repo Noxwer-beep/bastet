@@ -143,11 +143,27 @@ def classify(text: str) -> Indicator:
     return indicator
 
 
+RFC1918 = (
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+)
+DOCUMENTATION = (
+    ipaddress.ip_network("192.0.2.0/24"),
+    ipaddress.ip_network("198.51.100.0/24"),
+    ipaddress.ip_network("203.0.113.0/24"),
+    ipaddress.ip_network("2001:db8::/32"),
+)
+
+
 def _annotate_ip(indicator: Indicator, value: str) -> None:
     ip = ipaddress.ip_address(value)
     if ip.is_loopback:
         indicator.notes.append("loopback — never a remote attacker")
-    elif ip.is_private:
+    elif any(ip in net for net in DOCUMENTATION):
+        indicator.notes.append("documentation range (TEST-NET) — not a real host")
+        indicator.risk = "low"
+    elif any(ip in net for net in RFC1918):
         indicator.notes.append("private address (RFC1918) — lateral movement, not the internet")
         indicator.risk = "low"
     elif ip.is_link_local:
