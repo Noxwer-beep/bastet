@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bastet"
+version = "1.0.0"
+description = "Night-shift toolbox for a security analyst: IOC triage, log analysis, CVE and ATT&CK lookup, case notes"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Maximilian Jatzkowski" }]
+keywords = ["security", "soc", "dfir", "triage", "incident-response", "cli"]
+dependencies = ["rich>=13"]
+
+[project.scripts]
+bastet = "bastet.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+packages = ["bastet"]
+
+[tool.setuptools.package-data]
+bastet = ["data/*.json"]

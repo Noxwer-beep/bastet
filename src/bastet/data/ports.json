@@ -1,0 +1,324 @@
+[
+ {
+  "port": 21,
+  "service": "ftp",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "cleartext file transfer; anonymous login is still common on appliances"
+ },
+ {
+  "port": 22,
+  "service": "ssh",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "check for password auth, root login, and failed-login volume"
+ },
+ {
+  "port": 23,
+  "service": "telnet",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "cleartext credentials; usually something nobody patched"
+ },
+ {
+  "port": 25,
+  "service": "smtp",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "open relay check; mail servers are a phishing launchpad"
+ },
+ {
+  "port": 53,
+  "service": "dns",
+  "proto": "udp",
+  "risk": "medium",
+  "note": "open resolver = amplification; zone transfer (AXFR) check"
+ },
+ {
+  "port": 69,
+  "service": "tftp",
+  "proto": "udp",
+  "risk": "high",
+  "note": "no authentication at all; config and firmware theft"
+ },
+ {
+  "port": 80,
+  "service": "http",
+  "proto": "tcp",
+  "risk": "low",
+  "note": "cleartext; check redirect to HTTPS and security headers"
+ },
+ {
+  "port": 88,
+  "service": "kerberos",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "AS-REP roastable accounts (no pre-auth) and kerberoasting"
+ },
+ {
+  "port": 111,
+  "service": "rpcbind",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "NFS/RPC exposure; often means the file server is open"
+ },
+ {
+  "port": 123,
+  "service": "ntp",
+  "proto": "udp",
+  "risk": "low",
+  "note": "monlist amplification on old versions; clock skew breaks auth"
+ },
+ {
+  "port": 135,
+  "service": "msrpc",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "Windows RPC; attacker favourite for discovery and lateral movement"
+ },
+ {
+  "port": 137,
+  "service": "netbios-ns",
+  "proto": "udp",
+  "risk": "medium",
+  "note": "name service; leaks host and domain names"
+ },
+ {
+  "port": 139,
+  "service": "netbios-ssn",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "legacy SMB over NetBIOS; disable if you can"
+ },
+ {
+  "port": 161,
+  "service": "snmp",
+  "proto": "udp",
+  "risk": "high",
+  "note": "default community strings (public/private) leak the whole config"
+ },
+ {
+  "port": 389,
+  "service": "ldap",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "anonymous binds; cleartext credentials unless StartTLS"
+ },
+ {
+  "port": 443,
+  "service": "https",
+  "proto": "tcp",
+  "risk": "low",
+  "note": "check TLS version, cipher suites and certificate expiry"
+ },
+ {
+  "port": 445,
+  "service": "smb",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "ransomware's front door; enforce SMBv2+ and signing"
+ },
+ {
+  "port": 512,
+  "service": "exec",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "r-services, no real authentication"
+ },
+ {
+  "port": 513,
+  "service": "login",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "r-services; host-based trust is trivially bypassed"
+ },
+ {
+  "port": 514,
+  "service": "shell",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "rsh; logged by nobody, trusted by everything"
+ },
+ {
+  "port": 873,
+  "service": "rsync",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "unauthenticated module listing dumps the whole tree"
+ },
+ {
+  "port": 993,
+  "service": "imaps",
+  "proto": "tcp",
+  "risk": "low",
+  "note": "mail over TLS; check certificate and auth policy"
+ },
+ {
+  "port": 1433,
+  "service": "mssql",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "sa account, xp_cmdshell, and weak passwords"
+ },
+ {
+  "port": 1521,
+  "service": "oracle",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "default listeners; TNS poison potential"
+ },
+ {
+  "port": 2049,
+  "service": "nfs",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "no_root_squash exports let users become root on files"
+ },
+ {
+  "port": 2375,
+  "service": "docker",
+  "proto": "tcp",
+  "risk": "critical",
+  "note": "unauthenticated Docker API = root on the host"
+ },
+ {
+  "port": 2376,
+  "service": "docker-tls",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "Docker API with TLS; check the cert is real, not self-signed"
+ },
+ {
+  "port": 2379,
+  "service": "etcd",
+  "proto": "tcp",
+  "risk": "critical",
+  "note": "unauthenticated etcd holds every Kubernetes secret"
+ },
+ {
+  "port": 3000,
+  "service": "grafana/node",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "default admin/admin; dashboards leak infrastructure"
+ },
+ {
+  "port": 3306,
+  "service": "mysql",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "root without password; check bind-address"
+ },
+ {
+  "port": 3389,
+  "service": "rdp",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "exposed RDP is brute-forced continuously; enforce NLA"
+ },
+ {
+  "port": 5000,
+  "service": "upnp/http",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "IoT and dev servers; often no auth"
+ },
+ {
+  "port": 5432,
+  "service": "postgres",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "trust auth in pg_hba.conf is the usual find"
+ },
+ {
+  "port": 5900,
+  "service": "vnc",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "often unauthenticated; screen control with no audit trail"
+ },
+ {
+  "port": 5985,
+  "service": "winrm",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "remote PowerShell; needs only a credential"
+ },
+ {
+  "port": 6379,
+  "service": "redis",
+  "proto": "tcp",
+  "risk": "critical",
+  "note": "unauthenticated by default; CONFIG SET writes files"
+ },
+ {
+  "port": 8000,
+  "service": "http-alt",
+  "proto": "tcp",
+  "risk": "low",
+  "note": "dev servers left running; check what it serves"
+ },
+ {
+  "port": 8080,
+  "service": "http-alt",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "proxies and admin panels; check for default creds"
+ },
+ {
+  "port": 8443,
+  "service": "https-alt",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "admin consoles; certificate is usually self-signed"
+ },
+ {
+  "port": 9000,
+  "service": "portainer/php-fpm",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "container management UI with full host control"
+ },
+ {
+  "port": 9200,
+  "service": "elasticsearch",
+  "proto": "tcp",
+  "risk": "critical",
+  "note": "unauthenticated data theft; index deletion"
+ },
+ {
+  "port": 9300,
+  "service": "elasticsearch",
+  "proto": "tcp",
+  "risk": "high",
+  "note": "cluster transport; sniffing and data exfiltration"
+ },
+ {
+  "port": 10250,
+  "service": "kubelet",
+  "proto": "tcp",
+  "risk": "critical",
+  "note": "anonymous auth runs commands in any pod"
+ },
+ {
+  "port": 11211,
+  "service": "memcached",
+  "proto": "udp",
+  "risk": "high",
+  "note": "amplification and cache data exposure"
+ },
+ {
+  "port": 27017,
+  "service": "mongodb",
+  "proto": "tcp",
+  "risk": "critical",
+  "note": "no auth by default; entire databases readable"
+ },
+ {
+  "port": 50000,
+  "service": "db2/jenkins",
+  "proto": "tcp",
+  "risk": "medium",
+  "note": "Jenkins agent port; check the controller version"
+ }
+]

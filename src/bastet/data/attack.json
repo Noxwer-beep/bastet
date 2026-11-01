@@ -1,0 +1,254 @@
+[
+ {
+  "id": "T1595",
+  "name": "Active Scanning",
+  "tactic": "reconnaissance",
+  "description": "Adversaries probe addresses and ports for reachable services before choosing a target.",
+  "detection": "A single source hitting many ports or paths in a short window; IDS scan signatures; firewall deny spikes."
+ },
+ {
+  "id": "T1566.001",
+  "name": "Spearphishing Attachment",
+  "tactic": "initial-access",
+  "description": "A malicious attachment that the user opens, usually an office document or archive.",
+  "detection": "Mail gateway detonations; child processes of outlook/winword (winword -> cmd/powershell); macro-enabled docs."
+ },
+ {
+  "id": "T1566.002",
+  "name": "Spearphishing Link",
+  "tactic": "initial-access",
+  "description": "A link to a credential-harvesting page or a payload download.",
+  "detection": "Proxy logs for newly registered domains; lookalike domains; clicks followed by a POST to a non-corporate host."
+ },
+ {
+  "id": "T1190",
+  "name": "Exploit Public-Facing Application",
+  "tactic": "initial-access",
+  "description": "Exploiting a flaw in an internet-facing service \u2014 VPN, web app, mail gateway.",
+  "detection": "WAF alerts; unusual POST bodies to a known CVE endpoint; web server spawning a shell; new process trees under w3wp/php-fpm."
+ },
+ {
+  "id": "T1133",
+  "name": "External Remote Services",
+  "tactic": "initial-access",
+  "description": "Logging in through VPN, RDP or Citrix with stolen or guessed credentials.",
+  "detection": "Impossible travel; logins from hosting ASNs; first-seen device for an account; off-hours access to a service that is normally 9-5."
+ },
+ {
+  "id": "T1078",
+  "name": "Valid Accounts",
+  "tactic": "initial-access",
+  "description": "Using real credentials so nothing looks broken. The quietest way in.",
+  "detection": "MFA fatigue; new MFA device enrolment; privilege changes shortly after login; access to resources the role never touched."
+ },
+ {
+  "id": "T1059.001",
+  "name": "PowerShell",
+  "tactic": "execution",
+  "description": "Scripted execution on Windows, often encoded or downloaded in memory.",
+  "detection": "-enc/-EncodedCommand; DownloadString/iex; powershell spawned by office or a service; AMSI hits."
+ },
+ {
+  "id": "T1059.003",
+  "name": "Windows Command Shell",
+  "tactic": "execution",
+  "description": "cmd.exe used for discovery and execution.",
+  "detection": "cmd /c with net, whoami, ipconfig, tasklist in quick succession; cmd spawned by a web server."
+ },
+ {
+  "id": "T1059.004",
+  "name": "Unix Shell",
+  "tactic": "execution",
+  "description": "Shell execution on Linux or macOS, often through a web shell.",
+  "detection": "bash -c with curl|sh; reverse-shell one-liners; shell spawned by www-data or nginx."
+ },
+ {
+  "id": "T1204.002",
+  "name": "Malicious File",
+  "tactic": "execution",
+  "description": "The user runs the file. Everything before this is delivery.",
+  "detection": "Execution from Downloads/Temp; unsigned binaries; file written by a browser then executed within minutes."
+ },
+ {
+  "id": "T1053.005",
+  "name": "Scheduled Task/Job",
+  "tactic": "persistence",
+  "description": "Persistence that survives reboot without a service.",
+  "detection": "schtasks /create; tasks pointing at user-writable paths; cron entries added outside change windows."
+ },
+ {
+  "id": "T1543.003",
+  "name": "Windows Service",
+  "tactic": "persistence",
+  "description": "A service installed for persistence or to run a payload as SYSTEM.",
+  "detection": "sc create/new service; service binary in Temp or ProgramData; 7045 events with an unsigned image."
+ },
+ {
+  "id": "T1547.001",
+  "name": "Registry Run Keys",
+  "tactic": "persistence",
+  "description": "Autostart entries in HKCU/HKLM Run keys.",
+  "detection": "Autoruns drift; new Run value pointing at AppData; identical value across many hosts."
+ },
+ {
+  "id": "T1136",
+  "name": "Create Account",
+  "tactic": "persistence",
+  "description": "A new local or domain account for later use.",
+  "detection": "4720/4728 events; account created outside a joiner process; account never used but never disabled."
+ },
+ {
+  "id": "T1098",
+  "name": "Account Manipulation",
+  "tactic": "persistence",
+  "description": "Adding credentials, MFA devices or group membership to an existing account.",
+  "detection": "Group membership changes to privileged groups; new SSH key in authorized_keys; MFA device added."
+ },
+ {
+  "id": "T1068",
+  "name": "Exploitation for Privilege Escalation",
+  "tactic": "privilege-escalation",
+  "description": "A local exploit to go from user to SYSTEM/root.",
+  "detection": "Unexpected token elevation; kernel exploit artefacts; process integrity level jumping."
+ },
+ {
+  "id": "T1548.002",
+  "name": "Bypass User Account Control",
+  "tactic": "privilege-escalation",
+  "description": "Getting elevated without the prompt.",
+  "detection": "UAC-related registry changes; fodhelper/sdclt/computerdefaults parent processes."
+ },
+ {
+  "id": "T1562.001",
+  "name": "Disable or Modify Tools",
+  "tactic": "defense-evasion",
+  "description": "Turning off the defences first \u2014 AV, logging, firewall.",
+  "detection": "Defender exclusions added; auditpol changes; service stopped then deleted; ETW patched."
+ },
+ {
+  "id": "T1070.004",
+  "name": "Indicator Removal: File Deletion",
+  "tactic": "defense-evasion",
+  "description": "Deleting tools and logs after use.",
+  "detection": "USN journal gaps; event log cleared (1102); mass deletion in a directory."
+ },
+ {
+  "id": "T1027",
+  "name": "Obfuscated Files or Information",
+  "tactic": "defense-evasion",
+  "description": "Encoding or packing to survive inspection.",
+  "detection": "High-entropy blobs; base64 in script blocks; strings that decode to a URL; mismatched file type and content."
+ },
+ {
+  "id": "T1218.011",
+  "name": "Rundll32",
+  "tactic": "defense-evasion",
+  "description": "Signed Windows binaries used to run someone else's code.",
+  "detection": "rundll32 with a remote or temp DLL; ordinal exports; rundll32 spawned by office."
+ },
+ {
+  "id": "T1110",
+  "name": "Brute Force",
+  "tactic": "credential-access",
+  "description": "Guessing passwords, spraying, or credential stuffing.",
+  "detection": "Many failures per account or per IP; one password against many accounts (spraying); success right after failures."
+ },
+ {
+  "id": "T1003.001",
+  "name": "LSASS Memory",
+  "tactic": "credential-access",
+  "description": "Dumping credentials from memory.",
+  "detection": "procdump/comsvcs/minidump against lsass; handle access to lsass by a non-AV process; 4656 audits."
+ },
+ {
+  "id": "T1552",
+  "name": "Unsecured Credentials",
+  "tactic": "credential-access",
+  "description": "Credentials left in files, history, environment or the registry.",
+  "detection": "Access to .aws/credentials, .env, ~/.bash_history; grep patterns for password= in user directories."
+ },
+ {
+  "id": "T1087",
+  "name": "Account Discovery",
+  "tactic": "discovery",
+  "description": "Enumerating users and groups.",
+  "detection": "net user /domain, Get-ADUser, repeated 4624 logon-type-3 probes; ldapsearch against the DC."
+ },
+ {
+  "id": "T1046",
+  "name": "Network Service Discovery",
+  "tactic": "discovery",
+  "description": "Mapping what else is reachable from the foothold.",
+  "detection": "Internal port sweeps from a workstation; nmap-like traffic east-west; many RSTs from one host."
+ },
+ {
+  "id": "T1021.001",
+  "name": "Remote Desktop Protocol",
+  "tactic": "lateral-movement",
+  "description": "RDP to the next host with stolen credentials.",
+  "detection": "4624 type 10; RDP from a workstation to a workstation; unusual source subnet for RDP."
+ },
+ {
+  "id": "T1021.002",
+  "name": "SMB/Windows Admin Shares",
+  "tactic": "lateral-movement",
+  "description": "Copying and running via admin shares.",
+  "detection": "5140/5145 access to ADMIN$/C$; service creation after a share write; psexec-style artefacts."
+ },
+ {
+  "id": "T1071.001",
+  "name": "Application Layer Protocol: Web",
+  "tactic": "command-and-control",
+  "description": "C2 hidden in normal HTTP(S) traffic.",
+  "detection": "Beaconing at fixed intervals with jitter; consistent small POSTs; long-lived connections to one host."
+ },
+ {
+  "id": "T1105",
+  "name": "Ingress Tool Transfer",
+  "tactic": "command-and-control",
+  "description": "Pulling tools onto the host.",
+  "detection": "certutil/curl/wget downloading to Temp; executables written by powershell; archive downloads on servers."
+ },
+ {
+  "id": "T1573",
+  "name": "Encrypted Channel",
+  "tactic": "command-and-control",
+  "description": "Encrypting C2 so content inspection sees nothing.",
+  "detection": "Non-browser TLS to a hosting provider; self-signed certs on high ports; JA3 anomalies."
+ },
+ {
+  "id": "T1041",
+  "name": "Exfiltration Over C2 Channel",
+  "tactic": "exfiltration",
+  "description": "Data leaving through the same channel as the commands.",
+  "detection": "Upload volume per host spiking; large POST bodies; outbound traffic to an unusual ASN."
+ },
+ {
+  "id": "T1567",
+  "name": "Exfiltration Over Web Service",
+  "tactic": "exfiltration",
+  "description": "Using a legitimate service \u2014 pastebin, cloud storage, a form API.",
+  "detection": "Proxy logs to paste/file-sharing categories; new OAuth consent grants; large uploads by one user."
+ },
+ {
+  "id": "T1486",
+  "name": "Data Encrypted for Impact",
+  "tactic": "impact",
+  "description": "Ransomware. At this point you are in recovery, not prevention.",
+  "detection": "Mass file renames and entropy shift; shadow copy deletion; ransom note writes; backup service stopped."
+ },
+ {
+  "id": "T1490",
+  "name": "Inhibit System Recovery",
+  "tactic": "impact",
+  "description": "Destroying backups and shadow copies so recovery costs money.",
+  "detection": "vssadmin delete shadows; wbadmin delete; bcdedit recovery disabled; backup agent service stopped."
+ },
+ {
+  "id": "T1489",
+  "name": "Service Stop",
+  "tactic": "impact",
+  "description": "Stopping security and backup services before the payload.",
+  "detection": "Security service stopped outside a patch window; service stop followed by mass file writes."
+ }
+]
