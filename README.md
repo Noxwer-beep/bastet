@@ -150,7 +150,7 @@ pip install rich         # the only dependency
 python3 -m unittest discover -s tests -t .
 ```
 
-154 tests, stdlib only, no network. They cover indicator classification and defanging,
+155 tests, stdlib only, no network. They cover indicator classification and defanging,
 extraction (including the timestamp and filename traps), decode chains, log parsing and
 every detection, gzip and binary handling, the time filters, the NVD response parser,
 cases, subnet maths, both data files, and a smoke test per subcommand.

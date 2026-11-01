@@ -44,6 +44,13 @@ class TestClassify(unittest.TestCase):
         self.assertEqual(indicator.risk, "high")
         self.assertIn("credentials in the URL", " ".join(indicator.notes))
 
+    def test_url_host_tld_matches_domain_verdict(self):
+        """The same host must not read HIGH as a domain and LOW as a URL."""
+        url = ioc.classify("https://evil-login.top/reset")
+        domain = ioc.classify("evil-login.top")
+        self.assertEqual(url.risk, domain.risk)
+        self.assertEqual(url.risk, "high")
+
     def test_url_scheme(self):
         self.assertEqual(ioc.classify("https://example.com/path?q=1").kind, "url")
 

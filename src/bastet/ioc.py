@@ -245,6 +245,12 @@ def _annotate_url(indicator: Indicator, value: str) -> None:
         indicator.notes.append("punycode host — the link text will not match the address")
         indicator.risk = "high"
 
+    if host:
+        tld = host.rsplit(".", 1)[-1]
+        if tld in SUSPICIOUS_TLDS:
+            indicator.notes.append(f".{tld} host — same throwaway-TLD problem as the domain itself")
+            indicator.risk = max(indicator.risk, "high", key=_risk_rank)
+
     port = parts.port
     if port and port not in (80, 443) and port in NOTABLE_URL_PORTS:
         indicator.notes.append(f"non-standard port {port} on a web URL")
